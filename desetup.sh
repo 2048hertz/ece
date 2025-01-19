@@ -1,81 +1,95 @@
 #!/bin/bash
 # Written by Ayaan Eusufzai
 
-# Theme setup
-bash ~/adaos-xfce-main/themesetup.sh
+# Function to display messages
+function echo_message() {
+    echo -e "\n\e[1;32m$1\e[0m\n"
+}
 
-# Get variables for xfconf-query
-read -p "Enter your current username: " baseuser
+# Ensure the script is not run as root
+if [ "$EUID" -eq 0 ]; then
+    echo "Please do not run this script as root or using sudo."
+    exit 1
+fi
 
-# Define font download URL
-font_url="https://github.com/ifvictr/helvetica-neue/archive/refs/heads/master.zip"
+# Update system packages
+echo_message "Updating system packages..."
+sudo dnf update -y
+
+# Install necessary dependencies
+echo_message "Installing necessary dependencies..."
+sudo dnf install -y git gtk-murrine-engine sassc unzip
+
+# Clone and install the Orchis GTK theme
+echo_message "Cloning and installing the Orchis GTK theme..."
+git clone https://github.com/vinceliuice/Orchis-theme.git
+cd Orchis-theme
+./install.sh --tweaks solid
+cd ..
+rm -rf Orchis-theme
+
+# Clone and install the Numix Square icon theme
+echo_message "Cloning and installing the Numix Square icon theme..."
+git clone https://github.com/numixproject/numix-icon-theme-square.git
+mkdir -p ~/.icons
+cp -r numix-icon-theme-square/Numix-Square ~/.icons/
+rm -rf numix-icon-theme-square
+
+# Install the FreeSans font
+echo_message "Installing the FreeSans font..."
+font_url="https://ftp.gnu.org/gnu/freefont/freefont-ttf-20120503.zip"
 temp_dir=$(mktemp -d)
-
-# Download and unzip the font
-curl -L "$font_url" -o "$temp_dir/font.zip"
-unzip "$temp_dir/font.zip" -d "$temp_dir"
-
-# Create local fonts directory if it doesn't exist
+curl -L "$font_url" -o "$temp_dir/freefont.zip"
+unzip "$temp_dir/freefont.zip" -d "$temp_dir"
 mkdir -p ~/.local/share/fonts
-
-# Copy fonts to the local directory
-cp -r "$temp_dir/helvetica-neue-master/"* ~/.local/share/fonts/
-
-# Update font cache
+cp "$temp_dir/freefont-ttf-20120503/FreeSans.ttf" ~/.local/share/fonts/
 fc-cache -fv ~/.local/share/fonts
+rm -rf "$temp_dir"
 
-echo "Fonts installed successfully."
+# Apply the Orchis GTK theme and Numix Square icon theme
+echo_message "Applying the Orchis GTK theme and Numix Square icon theme..."
+xfconf-query -c xsettings -p /Net/ThemeName -s "Orchis-Dark"
+xfconf-query -c xsettings -p /Net/IconThemeName -s "Numix-Square"
 
-# THE REBRAND
+# Set the default font to FreeSans
+echo_message "Setting the default font to FreeSans..."
+xfconf-query -c xsettings -p /Gtk/FontName -s "FreeSans 10"
 
-# Define the new contents
-new_contents="Gevox\n\nSoftware Team - 2048megahertz@proton.me\n\nBugs should be reported at our GitHub - https://github.com/2048hertz/AdaOS/"
+# Set the XFWM4 (window manager) theme to match Orchis
+echo_message "Setting the XFWM4 theme to match Orchis..."
+xfconf-query -c xfwm4 -p /general/theme -s "Orchis-Dark"
 
-# Write the new contents to the user's local vendorinfo file
-mkdir -p ~/.local/share/xfce4
-echo -e "$new_contents" > ~/.local/share/xfce4/vendorinfo
-echo "Contents of ~/.local/share/xfce4/vendorinfo have been updated."
-
+# Customize the Applications Menu icon
+echo_message "Customizing the Applications Menu icon..."
 # Define the source and destination paths
 SOURCE_DIR=~/adaos-xfce-main
 DEST_DIR=~/.local/share/icons/hicolor
-
 # Create necessary directories
 mkdir -p "$DEST_DIR/16x16/apps"
 mkdir -p "$DEST_DIR/24x24/apps"
 mkdir -p "$DEST_DIR/32x32/apps"
 mkdir -p "$DEST_DIR/48x48/apps"
-
 # Replace the icons for each specified size
 cp "$SOURCE_DIR/16x16/org.xfce.panel.applicationsmenu.png" "$DEST_DIR/16x16/apps/org.xfce.panel.applicationsmenu.png"
 cp "$SOURCE_DIR/24x24/org.xfce.panel.applicationsmenu.png" "$DEST_DIR/24x24/apps/org.xfce.panel.applicationsmenu.png"
 cp "$SOURCE_DIR/32x32/org.xfce.panel.applicationsmenu.png" "$DEST_DIR/32x32/apps/org.xfce.panel.applicationsmenu.png"
 cp "$SOURCE_DIR/48x48/org.xfce.panel.applicationsmenu.png" "$DEST_DIR/48x48/apps/org.xfce.panel.applicationsmenu.png"
+# Update the icon cache
+gtk-update-icon-cache "$DEST_DIR"
 
-echo "Icon replacement completed."
+# Configure panel settings
+echo_message "Configuring panel settings..."
+# Set the Applications Menu button to not show the title
+xfconf-query -c xfce4-panel -p /plugins/plugin-1/show-button-title -s false
+# Set the custom title for the Session Menu
+xfconf-query -c xfce4-panel -p /plugins/plugin-14/button-title -s 3
+xfconf-query -c xfce4-panel -p /plugins/plugin-14/custom-title -s " Session Menu "
 
-# Function to set XFCE window manager button layout
-set_button_layout() {
-    xfconf-query -c xfwm4 -p /general/button_layout -s "SH|MC"
-    xfconf-query -c xfwm4 -p /general/title_alignment -s "center"
-    echo "Button layout changed to SH|MC"
-}
+# Set XFCE window manager button layout
+echo_message "Setting XFCE window manager button layout..."
+xfconf-query -c xfwm4 -p /general/button_layout -s "SH|MC"
+xfconf-query -c xfwm4 -p /general/title_alignment -s "center"
 
-# Function to customize the top panel
-top_panel() {
-    xfconf-query --create -c xfce4-panel -p /plugins/plugin-1/show-button-title -s "false"
-    xfconf-query --create -c xfce4-panel -p /plugins/plugin-14/button-title -s 3
-    xfconf-query --create -c xfce4-panel -p /plugins/plugin-14/custom-title -s " Session Menu "
-}
-
-# Apply XFCE customizations
-set_button_layout
-top_panel
-
-echo "Default XFCE configuration updated successfully."
-
-# Clean up temporary directory
-rm -rf "$temp_dir"
-
-echo "The XFCE customization script has been executed successfully."
+# Notify the user to reboot
+echo_message "Installation complete. Please reboot your system to apply all changes."
 
