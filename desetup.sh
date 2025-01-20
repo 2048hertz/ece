@@ -79,11 +79,21 @@ gtk-update-icon-cache "$DEST_DIR"
 
 # Configure panel settings
 echo_message "Configuring panel settings..."
+
 # Set the Applications Menu button to not show the title
 xfconf-query -c xfce4-panel -p /plugins/plugin-1/show-button-title -s false
+
 # Set the custom title for the Session Menu
+
+# Set the button-title property to 3
 xfconf-query -c xfce4-panel -p /plugins/plugin-14/button-title -s 3
+
+# Set the custom-title property to " Session Menu "
 xfconf-query -c xfce4-panel -p /plugins/plugin-14/custom-title -s " Session Menu "
+
+# Set the appearance property to 1
+xfconf-query -c xfce4-panel -p /plugins/plugin-14/appearance -s 1
+
 
 # Set XFCE window manager button layout
 echo_message "Setting XFCE window manager button layout..."
