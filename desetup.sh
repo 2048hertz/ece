@@ -85,15 +85,29 @@ xfconf-query -c xfce4-panel -p /plugins/plugin-1/show-button-title -s false
 
 # Set the custom title for the Session Menu
 
-# Set the button-title property to 3
-xfconf-query -c xfce4-panel -p /plugins/plugin-14/button-title -s 3
+# Function to set a property
+set_property() {
+    local channel=$1
+    local property=$2
+    local type=$3
+    local value=$4
 
-# Set the custom-title property to " Session Menu "
-xfconf-query -c xfce4-panel -p /plugins/plugin-14/custom-title -s " Session Menu "
+    # Check if the property exists
+    if xfconf-query -c "$channel" -p "$property" &>/dev/null; then
+        echo "Property $property exists. Setting its value to $value."
+        xfconf-query -c "$channel" -p "$property" -t "$type" -s "$value"
+    else
+        echo "Property $property does not exist. Creating it with value $value."
+        xfconf-query -c "$channel" -p "$property" -n -t "$type" -s "$value"
+    fi
+}
 
-# Set the appearance property to 1
-xfconf-query -c xfce4-panel -p /plugins/plugin-14/appearance -s 1
+# Set properties for plugin-14 (Actions plugin)
+set_property xfce4-panel /plugins/plugin-14/button-title int 3
+set_property xfce4-panel /plugins/plugin-14/custom-title string " Session Menu "
+set_property xfce4-panel /plugins/plugin-14/appearance int 1
 
+echo "XFCE panel properties have been configured."
 
 # Set XFCE window manager button layout
 echo_message "Setting XFCE window manager button layout..."
