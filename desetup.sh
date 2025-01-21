@@ -1,14 +1,5 @@
 #!/bin/bash
 # Written by Ayaan Eusufzai
-# Merged script to:
-#  - Update system & install dependencies
-#  - Install Orchis & Numix Square
-#  - Apply Orchis theme, Numix icons, Cantarell fonts
-#  - Set window manager theme & button layout
-#  - Copy custom Applications Menu icons
-#  - Remove default Applications Menu plugin
-#  - Install & add Whisker Menu plugin
-#  - Rename Session Menu plugin (plugin-14) to "Session Menu" (appearance tweaks)
 
 ###############################################################################
 # 1. Helper function to display messages
