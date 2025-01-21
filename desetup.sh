@@ -18,7 +18,7 @@ sudo dnf update -y
 
 # Install necessary dependencies
 echo_message "Installing necessary dependencies..."
-sudo dnf install -y git gtk-murrine-engine sassc unzip
+sudo dnf install -y git gtk-murrine-engine sassc unzip xfce4-whiskermenu-plugin
 
 # Clone and install the Orchis GTK theme
 echo_message "Cloning and installing the Orchis GTK theme..."
@@ -35,25 +35,14 @@ mkdir -p ~/.icons
 cp -r numix-icon-theme-square/Numix-Square ~/.icons/
 rm -rf numix-icon-theme-square
 
-# Install the FreeSans font
-echo_message "Installing the FreeSans font..."
-font_url="https://ftp.gnu.org/gnu/freefont/freefont-ttf-20120503.zip"
-temp_dir=$(mktemp -d)
-curl -L "$font_url" -o "$temp_dir/freefont.zip"
-unzip "$temp_dir/freefont.zip" -d "$temp_dir"
-mkdir -p ~/.local/share/fonts
-cp "$temp_dir/freefont-ttf-20120503/FreeSans.ttf" ~/.local/share/fonts/
-fc-cache -fv ~/.local/share/fonts
-rm -rf "$temp_dir"
-
 # Apply the Orchis GTK theme and Numix Square icon theme
 echo_message "Applying the Orchis GTK theme and Numix Square icon theme..."
 xfconf-query -c xsettings -p /Net/ThemeName -s "Orchis-Dark"
 xfconf-query -c xsettings -p /Net/IconThemeName -s "Numix-Square"
 
-# Set the default font to FreeSans
-echo_message "Setting the default font to FreeSans..."
-xfconf-query -c xsettings -p /Gtk/FontName -s "FreeSans 10"
+# Set Cantarell Regular as the default font
+echo_message "Setting Cantarell Regular as the default font..."
+xfconf-query -c xsettings -p /Gtk/FontName -s "Cantarell Regular 10"
 
 # Set the XFWM4 (window manager) theme to match Orchis
 echo_message "Setting the XFWM4 theme to match Orchis..."
@@ -114,6 +103,38 @@ echo_message "Setting XFCE window manager button layout..."
 xfconf-query -c xfwm4 -p /general/button_layout -s "SH|MC"
 xfconf-query -c xfwm4 -p /general/title_alignment -s "center"
 
-# Notify the user to reboot
-echo_message "Installation complete. Please reboot your system to apply all changes."
+# Install the Whisker Menu plugin
+echo_message "Installing the Whisker Menu plugin..."
+sudo dnf install -y xfce4-whiskermenu-plugin
+
+# Add the Whisker Menu to the panel
+echo_message "Adding the Whisker Menu to the panel..."
+# Retrieve the current list of plugin IDs
+plugin_ids=$(xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids)
+
+# Generate a new unique plugin ID
+new_id=$(( $(echo "$plugin_ids" | tr -d -c ',' | wc -c) + 1 ))
+
+# Add the Whisker Menu plugin
+xfconf-query -c xfce4-panel -p /plugins/plugin-$new_id -n -t string -s whiskermenu
+xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids -t int -s $new_id -a
+
+# Remove the default Applications Menu from the panel
+echo_message "Removing the default Applications Menu from the panel..."
+# Find the plugin ID of the existing Applications Menu
+app_menu_id=$(xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids | grep -o '[0-9]\+' | while read id; do
+    if xfconf-query -c xfce4-panel -p /plugins/plugin-$id -v | grep -q 'applicationsmenu'; then
+        echo $id
+        break
+    fi
+done)
+
+# Remove the Applications Menu plugin
+if [ -n "$app_menu_id" ]; then
+    xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids -t int -r -R -s $app_menu_id
+    xfconf-query -c xfce4-panel -p /plugins/plugin-$app_menu_id -r -R
+fi
+
+# Set the Whisker Menu icon to match the original Applications Menu
+::contentReference[oaicite:0]{index=0}
 
