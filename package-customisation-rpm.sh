@@ -1,12 +1,15 @@
 #!/bin/bash
 # By Ayaan Eusufzai
-# This is just a tool for AdaOS developers to package our tailored version of XFCE, now called ECE (Eusufzai Common Environment). 
-# This replaces the old method of customizing XFCE with a bash script.
-set -e  # Exit if any command fails
+# This script packages the Eusufzai Common Environment (ECE) for AdaOS into an RPM.
+# It replaces the previous method of customizing XFCE with a bash script.
+
+set -e  # Exit immediately if a command exits with a non-zero status.
 
 ECE_NAME="ece"
 VERSION="1.0"
 RELEASE="1"
+EMAIL="2048megahertz@proton.me"
+FULLNAME="Ayaan Eusufzai"
 
 echo "🔧 Setting up ECE RPM Build Environment for AdaOS..."
 
@@ -26,12 +29,13 @@ mkdir -p $SOURCEDIR
 mkdir -p $BUILDROOT/etc/skel/.config/
 
 echo "📂 Backing up current XFCE settings..."
-mkdir -p ece-config
-cp -r ~/.config/xfce4 ece-config/
-cp -r ~/.config/Thunar ece-config/
+CONFIG_DIR="ece-config"
+mkdir -p $CONFIG_DIR
+cp -r ~/.config/xfce4 $CONFIG_DIR/
+cp -r ~/.config/Thunar $CONFIG_DIR/
 
 echo "📦 Packaging XFCE settings..."
-tar -czvf $SOURCEDIR/ece-settings.tar.gz -C ece-config .
+tar -czvf $SOURCEDIR/ece-settings.tar.gz -C $CONFIG_DIR .
 
 echo "📝 Writing RPM spec file..."
 cat <<EOF > $SPECFILE
@@ -43,13 +47,13 @@ License:        GPL
 Group:          User Interface/Desktops
 Requires:       xfce4, xfce4-panel, xfwm4, xfce4-settings, arc-theme, papirus-icon-theme
 BuildArch:      noarch
-Source0:        ece-settings.tar.gz
+Source0:        %{name}-settings.tar.gz
 
 %description
 ECE (Eusufzai Common Environment) is a customized XFCE desktop environment tailored for usability and aesthetics on AdaOS.
 
 %prep
-%setup -q
+%setup -q -n $CONFIG_DIR
 
 %install
 mkdir -p %{buildroot}/etc/skel/.config/
@@ -57,11 +61,11 @@ cp -r xfce4 %{buildroot}/etc/skel/.config/
 cp -r Thunar %{buildroot}/etc/skel/.config/
 
 %files
-/etc/skel/.config/xfce4
-/etc/skel/.config/Thunar
+%dir /etc/skel/.config/xfce4
+%dir /etc/skel/.config/Thunar
 
 %changelog
-* Mon Feb 11 2025 Ayaan Eusufzai <2048megahertz@proton.me> - 1.0-1
+* Tue Feb 18 2025 $FULLNAME <$EMAIL> - $VERSION-$RELEASE
 - Initial release of ECE (Eusufzai Common Environment) customized desktop.
 EOF
 
