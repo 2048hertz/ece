@@ -62,7 +62,7 @@ xfconf-query -c xfwm4 -p /general/theme -s "Orchis-Dark"
 # Customize the Applications Menu icon
 echo_message "Customizing the Applications Menu icon..."
 # Define the source and destination paths
-SOURCE_DIR=~/adaos-xfce-main
+SOURCE_DIR=~/ece
 DEST_DIR=~/.local/share/icons/hicolor
 # Create necessary directories
 mkdir -p "$DEST_DIR/16x16/apps"
