@@ -2,6 +2,9 @@
 # ECE (Eusufzai Common Environment) Installer for AdaOS
 # By Ayaan Eusufzai
 
+# To-do
+# Add additional assets like orchis theme and numix icons n stuff
+
 set -e  # Exit immediately if any command fails
 
 GITHUB_USER="2048hertz"
