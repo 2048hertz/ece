@@ -1,6 +1,6 @@
 #!/bin/bash
 # Written by Ayaan Eusufzai
-# This is for developers to semi-replicate the ideal config
+# This is for developers to semi-replicate the config
 
 # Function to display messages
 function echo_message() {
